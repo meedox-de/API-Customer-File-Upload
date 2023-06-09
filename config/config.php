@@ -8,6 +8,7 @@ const LIB        = ROOT . 'lib' . DIRECTORY_SEPARATOR;
 
 ################# includes #################
 require_once(CONFIG . 'errorReporting.php');
+require_once(CONFIG . 'apiConfig.php');
 
 ################# configure timezone #################
 date_default_timezone_set( 'UTC' );

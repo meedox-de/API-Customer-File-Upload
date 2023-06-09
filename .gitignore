@@ -1,1 +1,3 @@
 /data
+/config/apiConfig.php
+.DS_Store

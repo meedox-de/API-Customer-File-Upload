@@ -34,13 +34,9 @@ class ApiCustomerFileUpload
 
     private const MAX_FILE_SIZE  = 100000000;
     private const MAX_FILE_COUNT = 5;
-    private const URL            = 'http://console.throemer.local?t=kd83k38c';
-    private const TOKEN          = 'lkkf90dufuehjfkl';
-    private const API_USER       = 'apiuser';
-    private const API_PASSWORD   = 'kiov894ughjioj3212e2';
 
     private array $postData = [
-        'token' => self::TOKEN,
+        'token' => API_CUSTOMER_FILE_UPLOAD_TOKEN,
     ];
 
 
@@ -111,13 +107,13 @@ class ApiCustomerFileUpload
     private function sendRequest()
     {
         $curl = curl_init();
-        curl_setopt( $curl, CURLOPT_URL, self::URL );
+        curl_setopt( $curl, CURLOPT_URL, API_CUSTOMER_FILE_UPLOAD_URL );
         curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
 
         curl_setopt( $curl, CURLOPT_POST, true );
         curl_setopt( $curl, CURLOPT_POSTFIELDS, $this->postData );
 
-        curl_setopt( $curl, CURLOPT_USERPWD, self::API_USER . ':' . self::API_PASSWORD );
+        curl_setopt( $curl, CURLOPT_USERPWD, API_CUSTOMER_FILE_UPLOAD_API_USER . ':' . API_CUSTOMER_FILE_UPLOAD_API_PASSWORD );
 
         // only for testing
         curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
@@ -125,6 +121,7 @@ class ApiCustomerFileUpload
         $result       = curl_exec( $curl );
         $responseCode = curl_getinfo( $curl, CURLINFO_RESPONSE_CODE );
         curl_close( $curl );
+
 
         var_dump( $responseCode );
         var_dump( $result );
