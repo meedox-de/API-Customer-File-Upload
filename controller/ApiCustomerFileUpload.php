@@ -173,14 +173,12 @@ class ApiCustomerFileUpload
             {
                 case 0:
                     // delete file
-                    var_dump( "delete file" );
-                    var_dump( unlink( DATA . $fileName ) );
+                    unlink( DATA . $fileName );
                     break;
 
                 case 1:
                     // file exists, rename file
-                    var_dump( "file exists" );
-                    var_dump( rename( DATA . $fileName, DATA . 'exists__' . $fileName ) );
+                    rename( DATA . $fileName, DATA . 'exists__' . $fileName );
                     break;
                 case 2:
                     // file cant move, rename file2
