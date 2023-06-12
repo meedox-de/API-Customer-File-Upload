@@ -5,6 +5,7 @@ namespace controller;
 use CURLFile;
 use lib\DebugHelper;
 use lib\FileHelper;
+use stdClass;
 
 
 class ApiCustomerFileUpload
@@ -47,10 +48,8 @@ class ApiCustomerFileUpload
             exit();
         }
 
-        $this->sendRequest();
-
-
-        $this->deleteFiles();
+        $processedFiles = $this->sendRequest();
+        $this->processFiles( $processedFiles );
     }
 
     /**
@@ -60,7 +59,11 @@ class ApiCustomerFileUpload
      */
     private function collectFiles() :int
     {
-        $files     = scandir( DATA );
+        // scan directory and get files
+        $files = scandir( DATA );
+        // shuffle $files array
+        shuffle( $files );
+
         $fileCount = 0;
 
         foreach( $files as $file )
@@ -70,10 +73,30 @@ class ApiCustomerFileUpload
                 break;
             }
 
+            // ignore directory links
             if( $file === '.' || $file === '..' )
             {
                 continue;
             }
+
+            // ignore files with "exists__exists__" prefix. These files processed already 2 times and failed
+            if( str_starts_with( $file, 'exists__exists__' ) )
+            {
+                continue;
+            }
+            elseif( str_starts_with( $file, 'cant_move__cant_move__' ) )
+            {
+                continue;
+            }
+            elseif( str_starts_with( $file, 'cant_convert__cant_convert__' ) )
+            {
+                continue;
+            }
+            elseif( str_starts_with( $file, 'cant_save__cant_save__' ) )
+            {
+                continue;
+            }
+
 
             $filePath = DATA . $file;
 
@@ -103,8 +126,12 @@ class ApiCustomerFileUpload
         return $fileCount;
     }
 
-
-    private function sendRequest()
+    /**
+     * Function send files to api
+     *
+     * @return array
+     */
+    private function sendRequest() :stdClass
     {
         $curl = curl_init();
         curl_setopt( $curl, CURLOPT_URL, API_CUSTOMER_FILE_UPLOAD_URL );
@@ -118,25 +145,56 @@ class ApiCustomerFileUpload
         // only for testing
         curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
 
-        $result       = curl_exec( $curl );
-        $responseCode = curl_getinfo( $curl, CURLINFO_RESPONSE_CODE );
+        $result = json_decode( curl_exec( $curl ) );
         curl_close( $curl );
+        DebugHelper::pre( $result );
 
-
-        var_dump( $responseCode );
-        var_dump( $result );
-        DebugHelper::pre( json_decode( $result ) );
-        die();
-
-        if( $responseCode !== 200 )
+        if( isset( $result->success ) && !$result->success )
         {
+            echo 'An error occurred.';
             exit();
         }
+
+        return $result->processedFiles;
     }
 
-
-    private function deleteFiles()
+    /**
+     * Function rename or delete processed files
+     *
+     * @param array $processedFiles
+     *
+     * @return void
+     */
+    private function processFiles(stdClass $processedFiles) :void
     {
+        foreach( $processedFiles as $fileName => $responseCode )
+        {
+            switch( $responseCode )
+            {
+                case 0:
+                    // delete file
+                    var_dump( "delete file" );
+                    var_dump( unlink( DATA . $fileName ) );
+                    break;
 
+                case 1:
+                    // file exists, rename file
+                    var_dump( "file exists" );
+                    var_dump( rename( DATA . $fileName, DATA . 'exists__' . $fileName ) );
+                    break;
+                case 2:
+                    // file cant move, rename file2
+                    rename( DATA . $fileName, DATA . 'cant_move__' . $fileName );
+                    break;
+                case 3:
+                    // file cant converted to pdf/a, rename file
+                    rename( DATA . $fileName, DATA . 'cant_convert__' . $fileName );
+                    break;
+                case 4:
+                    // file cant save to database, rename file
+                    rename( DATA . $fileName, DATA . 'cant_save__' . $fileName );
+                    break;
+            }
+        }
     }
 }
