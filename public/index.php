@@ -6,7 +6,7 @@ define( 'ROOT', dirname( __DIR__, 2 ) . DIRECTORY_SEPARATOR . 'api-customer-file
 require_once('../config/config.php');
 
 // autoloader
-function autoload($class)
+function autoload($class) :void
 {
     $file = ROOT . str_replace( '\\', DIRECTORY_SEPARATOR, $class ) . '.php';
 
@@ -21,7 +21,7 @@ spl_autoload_register( 'autoload', true );
 
 $token = \lib\FunctionalHelper::get( 't' );
 
-if( !empty( $token ) && $token === 'v84kdod9bj9084jfa' )
+if( !empty( $token ) && $token === API_CUSTOMER_URL_TOKEN )
 {
     new ApiCustomerFileUpload();
 }
